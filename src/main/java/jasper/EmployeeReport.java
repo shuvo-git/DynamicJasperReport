@@ -1,26 +1,32 @@
 package jasper;
 
+import ar.com.fdvs.dj.core.DJConstants;
 import ar.com.fdvs.dj.core.DynamicJasperHelper;
+import ar.com.fdvs.dj.core.JasperDesignDecorator;
 import ar.com.fdvs.dj.core.layout.ClassicLayoutManager;
+import ar.com.fdvs.dj.domain.AutoText;
 import ar.com.fdvs.dj.domain.DynamicReport;
 import ar.com.fdvs.dj.domain.Style;
-import ar.com.fdvs.dj.domain.builders.ColumnBuilder;
-import ar.com.fdvs.dj.domain.builders.ColumnBuilderException;
-import ar.com.fdvs.dj.domain.builders.DynamicReportBuilder;
-import ar.com.fdvs.dj.domain.builders.StyleBuilder;
-import ar.com.fdvs.dj.domain.constants.Border;
+import ar.com.fdvs.dj.domain.builders.*;
+import ar.com.fdvs.dj.domain.constants.*;
 import ar.com.fdvs.dj.domain.constants.Font;
-import ar.com.fdvs.dj.domain.constants.HorizontalAlign;
 import ar.com.fdvs.dj.domain.constants.Transparency;
-import ar.com.fdvs.dj.domain.constants.VerticalAlign;
+import ar.com.fdvs.dj.domain.entities.DJGroup;
 import ar.com.fdvs.dj.domain.entities.columns.AbstractColumn;
+import ar.com.fdvs.dj.domain.entities.columns.PropertyColumn;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.design.JRDesignExpression;
+import net.sf.jasperreports.engine.design.JRDesignSubreport;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.type.PositionTypeEnum;
+import net.sf.jasperreports.engine.xml.JasperDesignFactory;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 public class EmployeeReport {
 
@@ -39,6 +45,8 @@ public class EmployeeReport {
         JasperPrint jp = DynamicJasperHelper.generateJasperPrint(dynaReport, new ClassicLayoutManager(), new JRBeanCollectionDataSource(list));
         return jp;
     }
+
+
 
     private Style createHeaderStyle() {
         return new StyleBuilder(true)
@@ -97,7 +105,13 @@ public class EmployeeReport {
 
 
 
-    private AbstractColumn createColumn(String property, Class type, String title, int width, Style headerStyle, Style detailStyle) throws ColumnBuilderException
+    private AbstractColumn createColumn(String property,
+                                        Class type,
+                                        String title,
+                                        int width,
+                                        Style headerStyle,
+                                        Style detailStyle)
+            throws ColumnBuilderException
     {
         return ColumnBuilder.getNew()
         .setColumnProperty(property, type.getName())
@@ -105,6 +119,26 @@ public class EmployeeReport {
         .setStyle(detailStyle)
         .setHeaderStyle(headerStyle).build();
 
+    }
+
+    private DynamicReport createSubreport1(String title) {
+        FastReportBuilder rb = new FastReportBuilder();
+
+        DynamicReport dr = null;
+        try {
+            dr = rb
+                    .addColumn("Date", "date", Date.class.getName(), 100)
+                    .addColumn("Average", "average", Float.class.getName(), 50)
+                    .addColumn("%", "percentage", Float.class.getName(), 50)
+                    .addColumn("Amount", "amount", Float.class.getName(), 50)
+                    .setMargins(5, 5, 20, 20)
+                    .setUseFullPageWidth(true)
+                    .setTitle(title)
+                    .build();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return dr;
     }
 
     private DynamicReport getReport(Style headerStyle, Style detailTextStyle, Style detailNumStyle)
@@ -115,16 +149,45 @@ public class EmployeeReport {
         AbstractColumn columnSalary = createColumn("salary", Integer.class,"Salary", 30, headerStyle, detailNumStyle);
         AbstractColumn columnCommission = createColumn("commission", Float.class,"Commission", 30, headerStyle, detailNumStyle);
 
+        DJGroup g = new GroupBuilder()
+                .setCriteriaColumn((PropertyColumn) columnEmpNo)
+                .setGroupLayout(GroupLayout.VALUE_IN_HEADER)
+                .build();
+
+        Integer margin = 20;
+
         return new DynamicReportBuilder()
-            .addColumn(columnEmpNo)
-            .addColumn(columnName)
-            .addColumn(columnSalary)
-            .addColumn(columnCommission)
-            .setTitle("Employee Report")
-            .setTitleStyle(createTitleStyle())
-            .setSubtitle("Commission received by Employee")
-            .setSubtitleStyle(createSubTitleStyle())
-            .setUseFullPageWidth(true)
-            .build();
+                .setTitleStyle(createTitleStyle())
+                .setTitle("Employee Report")
+                .setSubtitleStyle(createSubTitleStyle())
+                .setSubtitle("Commission received by Employee")
+
+                .setDetailHeight(15)
+                .setLeftMargin(margin)
+                .setRightMargin(margin)
+                .setTopMargin(margin)
+                .setBottomMargin(margin)
+                .setUseFullPageWidth(true)
+                .setWhenNoDataAllSectionNoDetail()
+                .addAutoText(AutoText.AUTOTEXT_PAGE_X_OF_Y, AutoText.POSITION_FOOTER,AutoText.ALIGNMENT_CENTER)
+
+                /*.addColumn(columnEmpNo)
+                .addColumn(columnName)
+                .addColumn(columnSalary)
+                .addColumn(columnCommission)
+                .addGroup(g)*/
+
+                .addConcatenatedReport(
+                    createSubreport1("Sub report 1"),
+                    new ClassicLayoutManager(),
+                    "statistics",
+                    DJConstants.DATA_SOURCE_ORIGIN_PARAMETER,
+                    DJConstants.DATA_SOURCE_TYPE_COLLECTION,
+                    false
+                ).build();
+
+
+
+
     }
 }
