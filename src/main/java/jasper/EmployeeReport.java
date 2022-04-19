@@ -78,6 +78,23 @@ public class EmployeeReport {
         .build();
     }
 
+    private Style createTitleStyle()
+    {
+        return new StyleBuilder(true)
+        .setHorizontalAlign(HorizontalAlign.CENTER)
+        .setFont(new Font(20, Font._FONT_GEORGIA, true))
+        .build();
+    }
+
+    private Style createSubTitleStyle()
+    {
+        return new StyleBuilder(true)
+        .setHorizontalAlign(HorizontalAlign.CENTER)
+        .setFont(new Font(Font.MEDIUM, Font._FONT_GEORGIA, true))
+        .setPaddingBottom(10)
+        .build();
+    }
+
 
 
     private AbstractColumn createColumn(String property, Class type, String title, int width, Style headerStyle, Style detailStyle) throws ColumnBuilderException
@@ -90,35 +107,24 @@ public class EmployeeReport {
 
     }
 
-    private DynamicReport getReport(Style headerStyle, Style detailTextStyle, Style detailNumStyle) throws ColumnBuilderException, ClassNotFoundException {
-
-        DynamicReportBuilder report=new DynamicReportBuilder();
-
+    private DynamicReport getReport(Style headerStyle, Style detailTextStyle, Style detailNumStyle)
+            throws ColumnBuilderException, ClassNotFoundException
+    {
         AbstractColumn columnEmpNo = createColumn("empNo", Integer.class,"Employee Number", 30, headerStyle, detailTextStyle);
         AbstractColumn columnName = createColumn("name", String.class,"Name", 30, headerStyle, detailTextStyle);
         AbstractColumn columnSalary = createColumn("salary", Integer.class,"Salary", 30, headerStyle, detailNumStyle);
         AbstractColumn columnCommission = createColumn("commission", Float.class,"Commission", 30, headerStyle, detailNumStyle);
 
-        report.addColumn(columnEmpNo)
-                .addColumn(columnName)
-                .addColumn(columnSalary)
-                .addColumn(columnCommission);
-
-        StyleBuilder titleStyle=new StyleBuilder(true);
-        titleStyle.setHorizontalAlign(HorizontalAlign.CENTER);
-        titleStyle.setFont(new Font(20, Font._FONT_GEORGIA, true));
-
-        StyleBuilder subTitleStyle=new StyleBuilder(true);
-        subTitleStyle.setHorizontalAlign(HorizontalAlign.CENTER);
-        subTitleStyle.setFont(new Font(Font.MEDIUM, Font._FONT_GEORGIA, true));
-
-
-
-        report.setTitle("Employee Report");
-        report.setTitleStyle(titleStyle.build());
-        report.setSubtitle("Commission received by Employee");
-        report.setSubtitleStyle(subTitleStyle.build());
-        report.setUseFullPageWidth(true);
-        return report.build();
+        return new DynamicReportBuilder()
+            .addColumn(columnEmpNo)
+            .addColumn(columnName)
+            .addColumn(columnSalary)
+            .addColumn(columnCommission)
+            .setTitle("Employee Report")
+            .setTitleStyle(createTitleStyle())
+            .setSubtitle("Commission received by Employee")
+            .setSubtitleStyle(createSubTitleStyle())
+            .setUseFullPageWidth(true)
+            .build();
     }
 }
