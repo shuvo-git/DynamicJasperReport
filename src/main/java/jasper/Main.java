@@ -1,13 +1,13 @@
 package jasper;
 
+import ar.com.fdvs.dj.core.DynamicJasperHelper;
 import ar.com.fdvs.dj.domain.builders.ColumnBuilderException;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.view.JasperViewer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
 public class Main {
 
@@ -28,10 +28,13 @@ public class Main {
 
         EmployeeReport report = new EmployeeReport(list);
 
+
+
         try {
             JasperPrint jp = report.getReport();
             JasperViewer jasperViewer = new JasperViewer(jp);
             jasperViewer.setVisible(true);
+
 
         } catch (JRException | ColumnBuilderException | ClassNotFoundException ex) {
 
